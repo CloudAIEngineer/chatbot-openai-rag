@@ -1,0 +1,13 @@
+Resources:
+    PineconeParameter:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: /Pinecone/APIKey
+        Type: String
+        Value: ${env:PINECONE_API_KEY}
+    OpenAIParameter:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: /OpenAI/APIKey
+        Type: String
+        Value: ${env:OPENAI_API_KEY}
