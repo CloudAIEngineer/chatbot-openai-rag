@@ -1,0 +1,35 @@
+service: finetuning-openai
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  environment:
+    PINECONE_API_KEY: ${env:PINECONE_API_KEY}
+    #why do we need this section?
+
+plugins:
+  - serverless-python-requirements
+
+functions:
+  chatbot:
+    handler: handlers/chatbot.handler
+    environment:
+      FINE_TUNED_MODEL: ${env:FINE_TUNED_MODEL}
+      PINECONE_DATABASE: ${env:PINECONE_DATABASE}
+    role: !GetAtt ChatbotLambdaExecutionRole.Arn
+
+resources:
+  - ${file(resources/iam-roles.yml)}
+  - ${file(resources/dynamodb.yml)}
+  - ${file(resources/ssm.yml)}
+
+package:
+  individually: true
+  exclude:
+    - "*.json"
+    - "node_modules/**"
+    - "meetings/**"
+    - ".serverless/**"
+    - ".git/**"
+    - "env/**"

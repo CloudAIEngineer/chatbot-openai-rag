@@ -1,0 +1,27 @@
+# Serverless Framework
+.serverless/
+*.serverless/
+
+# Node modules (if using npm for any dependencies)
+node_modules/
+
+# Python environment and dependencies
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+.venv/
+*.egg-info/
+
+# Python distribution package
+dist/
+build/
+
+# My folders
+.ipynb_checkpoints/
+.finetenv/
+.DS_Store
+dataset/twcs/
+.env
