@@ -21,9 +21,7 @@ def initialize_pinecone():
     )
     return vectorstore
 
-# Setup LangChain and RetrievalQA
 def setup_qa_chain(vectorstore):
-    # Define custom prompt
     prompt_template = """
     You are an intelligent assistant trained to provide answers based on the following context. 
     Context:

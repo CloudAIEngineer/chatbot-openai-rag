@@ -21,7 +21,8 @@ build/
 
 # My folders
 .ipynb_checkpoints/
-.finetenv/
+finetenv/
+lambda-env/
 .DS_Store
-dataset/twcs/
+dataset/
 .env

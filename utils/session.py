@@ -1,21 +1,27 @@
 import boto3
+import json
 
-# Get session data from DynamoDB
 def get_session(user_id):
     dynamodb = boto3.client('dynamodb')
     response = dynamodb.get_item(
         TableName='ChatbotSessions',
         Key={'userId': {'S': user_id}}
     )
-    return response.get('Item', {}).get('conversationHistory', {'S': ''})['S']
+    session_history = response.get('Item', {}).get('conversationHistory', {'S': '[]'})['S']
+    return json.loads(session_history)
 
-# Save session data to DynamoDB
 def save_session(user_id, conversation_history):
     dynamodb = boto3.client('dynamodb')
     dynamodb.put_item(
         TableName='ChatbotSessions',
         Item={
             'userId': {'S': user_id},
-            'conversationHistory': {'S': conversation_history}
+            'conversationHistory': {'S': str(conversation_history)}
         }
     )
+
+def add_user_message(session_history, query):
+    return session_history + [{"role": "user", "content": query}]
+
+def add_assistant_message(session_history, response):
+    return session_history + [{"role": "assistant", "content": response}]
