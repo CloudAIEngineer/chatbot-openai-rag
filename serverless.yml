@@ -4,9 +4,8 @@ frameworkVersion: '3'
 
 provider:
   name: aws
-  environment:
-    PINECONE_API_KEY: ${env:PINECONE_API_KEY}
-    #why do we need this section?
+  region: eu-central-1
+  runtime: python3.11
 
 plugins:
   - serverless-python-requirements
@@ -28,8 +27,12 @@ package:
   individually: true
   exclude:
     - "*.json"
+    - "*.ipyndb"
     - "node_modules/**"
-    - "meetings/**"
+    - "finetenv/**"
     - ".serverless/**"
     - ".git/**"
     - "env/**"
+    - "gpt_files/**"
+    - "rag/**"
+    - "dataset/**"

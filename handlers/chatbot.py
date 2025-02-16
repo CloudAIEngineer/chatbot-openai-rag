@@ -1,25 +1,22 @@
-import json
-from utils.session import get_session, save_session
+from utils.session import *
 from utils.langchain import initialize_pinecone, setup_qa_chain
-import os
 
 def handler(event, context):
-    user_id = event.get("userId")  # Assuming userId is passed in the event payload
-    query = event.get("query")     # Query passed in the event payload
+    user_id = event.get("userId")
+    query = event.get("query")
 
-    # Retrieve previous conversation history
     session_history = get_session(user_id)
 
-    # Initialize Pinecone and LangChain QA
+    # Initialize Pinecone and LangChain
     vectorstore = initialize_pinecone()
     qa_chain = setup_qa_chain(vectorstore)
 
-    # Combine the session history with the current query
-    context = session_history + "\n" + query
-    result = qa_chain.invoke(context)
+    # Add the user's message to the thread and get response
+    updated_history = add_user_message(session_history, query)
+    result = qa_chain.invoke(updated_history)
 
-    # Save updated conversation history
-    updated_history = session_history + "\n" + query + "\n" + result['result']
+    # Add the assistant's response to the session history
+    updated_history = add_assistant_message(updated_history, result['result'])
     save_session(user_id, updated_history)
 
     return {
