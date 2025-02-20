@@ -2,8 +2,10 @@ from utils.session import *
 from utils.langchain import initialize_pinecone, setup_qa_chain
 
 def handler(event, context):
-    user_id = event.get("userId")
-    query = event.get("query")
+    print("Received event:", event)
+    body = json.loads(event.get("body", "{}"))
+    user_id = body.get("userId")
+    query = body.get("query")
 
     session_history = get_session(user_id)
 

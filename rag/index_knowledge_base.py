@@ -40,7 +40,6 @@ def index_data(index, file_path):
         vector = {
             "id": item["metadata"]["id"],
             "metadata": {
-                "id": item["metadata"]["id"],
                 "text": item["text"],
                 **item["metadata"]
             },
