@@ -2,7 +2,7 @@ import boto3
 import json
 
 def get_session(user_id):
-    dynamodb = boto3.client('dynamodb')
+    dynamodb = boto3.client('dynamodb', region_name='eu-central-1')
     response = dynamodb.get_item(
         TableName='ChatbotSessions',
         Key={'userId': {'S': user_id}}
@@ -11,7 +11,7 @@ def get_session(user_id):
     return json.loads(session_history)
 
 def save_session(user_id, conversation_history):
-    dynamodb = boto3.client('dynamodb')
+    dynamodb = boto3.client('dynamodb', region_name='eu-central-1')
     dynamodb.put_item(
         TableName='ChatbotSessions',
         Item={

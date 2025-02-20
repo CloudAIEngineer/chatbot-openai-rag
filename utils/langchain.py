@@ -2,21 +2,13 @@ import os
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from pinecone import Pinecone
 from langchain_pinecone import Pinecone as PineconeVector
 
-# Initialize Pinecone and other dependencies
+# Initialize Pinecone
 def initialize_pinecone():
-    # Get Pinecone API key and initialize
-    # Should be replaces to secret manager
-    pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
-    index_name = os.environ.get("PINECONE_DATABASE")
-    index = pc.Index(index_name)
-
-    # Initialize Pinecone vector store
     embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
     vectorstore = PineconeVector.from_existing_index(
-        index_name=index_name, 
+        index_name=os.environ.get("PINECONE_DATABASE"),
         embedding=embeddings
     )
     return vectorstore
