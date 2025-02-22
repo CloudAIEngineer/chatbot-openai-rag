@@ -1,27 +1,32 @@
 from utils.session import *
 from utils.langchain import initialize_pinecone, setup_qa_chain
+import json
 
 def handler(event, context):
-    print("Received event:", event)
     body = json.loads(event.get("body", "{}"))
+    print("Received event body:", body)
     user_id = body.get("userId")
     query = body.get("query")
 
-    session_history = get_session(user_id)
+    session_history = get_chat_history(user_id)
+    print("Session history:", session_history)
 
     # Initialize Pinecone and LangChain
     vectorstore = initialize_pinecone()
-    qa_chain = setup_qa_chain(vectorstore)
+    chain = setup_qa_chain(vectorstore)
+    
+    result = chain.invoke({
+        "input": query,
+        "placeholder": session_history,
+    })
+    print(result)
 
-    # Add the user's message to the thread and get response
-    updated_history = add_user_message(session_history, query)
-    result = qa_chain.invoke(updated_history)
-
-    # Add the assistant's response to the session history
-    updated_history = add_assistant_message(updated_history, result['result'])
-    save_session(user_id, updated_history)
+    #result = {"result": 'GPT answer'}
+    #save_user_message(user_id, query)
+    #updated_history = save_assistant_message(user_id, result['result'])
+    #print("Updated after assistant:", updated_history)
 
     return {
         "statusCode": 200,
-        "body": result['result']
+        "body": result.get("answer", "No answer available")
     }

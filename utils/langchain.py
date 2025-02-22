@@ -1,37 +1,45 @@
 import os
-from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_pinecone import Pinecone as PineconeVector
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
 
-# Initialize Pinecone
+# Initialize vector database and specify embedding type
 def initialize_pinecone():
-    embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
     vectorstore = PineconeVector.from_existing_index(
-        index_name=os.environ.get("PINECONE_DATABASE"),
-        embedding=embeddings
+        index_name=os.environ.get('PINECONE_DATABASE'),
+        embedding=OpenAIEmbeddings(model='text-embedding-ada-002')
     )
     return vectorstore
 
-def setup_qa_chain(vectorstore):
-    prompt_template = """
-    You are an intelligent assistant trained to provide answers based on the following context. 
-    Context:
-    {context}
-
-    Please answer the question in a concise and clear manner.
-    Question: {question}
-    """
-    prompt = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
-
-    # Setup fine-tuned model
-    llm = ChatOpenAI(model=os.environ.get("FINE_TUNED_MODEL"))
-
-    # Combine Retrieval (from Pinecone) with the LLM
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="map_reduce",
-        retriever=vectorstore.as_retriever(search_kwargs={"k": 3}),
-        return_source_documents=True
+# Create prompt template
+def create_prompt():
+    system_prompt = (
+        "You are a railway service assistant. "
+        "Use the following documents about trains:\n\n"
+        "Context: {context}\n\n"
+        "Use the provided conversation history for context, "
+        "but answer ONLY the latest user question as precisely as possible."
     )
-    return qa_chain
+
+    return ChatPromptTemplate([
+        ("system", system_prompt),
+        ("placeholder", "{conversation}"),
+        ("human", "{input}")
+    ])
+
+# Initialize a chain to send requests to the LLM
+def setup_qa_chain(vectorstore):
+    prompt = create_prompt()
+    
+    # 'FINETUNED_MODEL' environment variable should contain LLM model code
+    llm = ChatOpenAI(model=os.environ.get("FINETUNED_MODEL"))
+    
+    # Create a retriever from the vectorstore with a search limit of 3 results
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+
+    qa_chain = create_stuff_documents_chain(llm, prompt)
+    chain = create_retrieval_chain(retriever, qa_chain)
+
+    return chain
