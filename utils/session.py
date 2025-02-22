@@ -1,27 +1,37 @@
 import boto3
-import json
+import os
+from langchain_community.chat_message_histories import DynamoDBChatMessageHistory
 
-def get_session(user_id):
-    dynamodb = boto3.client('dynamodb', region_name='eu-central-1')
-    response = dynamodb.get_item(
-        TableName='ChatbotSessions',
-        Key={'userId': {'S': user_id}}
+# Table name to store chat sessions
+SESSION_TABLE_NAME = os.environ.get('SESSION_TABLE_NAME')
+
+# Create a boto3 session
+boto3_session = boto3.Session(region_name=os.environ.get('AWS_REGION'))
+
+def create_history(user_id):
+    """
+    Helper function to create a DynamoDBChatMessageHistory object.
+    """
+    return DynamoDBChatMessageHistory(
+        table_name=SESSION_TABLE_NAME,
+        session_id=user_id,
+        boto3_session=boto3_session,
+        primary_key_name='userId',
+        history_size=5
     )
-    session_history = response.get('Item', {}).get('conversationHistory', {'S': '[]'})['S']
-    return json.loads(session_history)
 
-def save_session(user_id, conversation_history):
-    dynamodb = boto3.client('dynamodb', region_name='eu-central-1')
-    dynamodb.put_item(
-        TableName='ChatbotSessions',
-        Item={
-            'userId': {'S': user_id},
-            'conversationHistory': {'S': str(conversation_history)}
-        }
-    )
+def get_chat_history(user_id):
+    history = create_history(user_id)
+    for msg in history.messages:
+        print(type(msg), msg)
+    return history.messages if history.messages else []
 
-def add_user_message(session_history, query):
-    return session_history + [{"role": "user", "content": query}]
+def save_user_message(user_id, query):
+    history = create_history(user_id)
+    history.add_user_message(query)
+    return history
 
-def add_assistant_message(session_history, response):
-    return session_history + [{"role": "assistant", "content": response}]
+def save_assistant_message(user_id, response):
+    history = create_history(user_id)
+    history.add_ai_message(response)
+    return history
