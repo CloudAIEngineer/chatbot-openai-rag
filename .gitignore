@@ -24,5 +24,6 @@ build/
 finetenv/
 lambda-env/
 .DS_Store
-dataset/
+finetuning/kaggle_dataset/
+finetuning/openai_files/
 .env

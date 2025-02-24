@@ -71,7 +71,7 @@ def index_knowledge_base_files(knowledge_base_folder, files_to_index, index):
 index = get_pinecone_index()
 
 # Index knowledge files
-knowledge_base_folder = "dataset/knowledge_base"
+knowledge_base_folder = "knowledge_base"
 files_to_index = ["schedule.json", "tickets.json", "support.json"]
 index_knowledge_base_files(knowledge_base_folder, files_to_index, index)
 
