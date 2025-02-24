@@ -36,10 +36,13 @@ def setup_qa_chain(vectorstore):
     # 'FINETUNED_MODEL' environment variable should contain LLM model code
     llm = ChatOpenAI(model=os.environ.get("FINETUNED_MODEL"))
     
-    # Create a retriever from the vectorstore with a search limit of 3 results
+    # Ssearch limit of 3 results
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
     qa_chain = create_stuff_documents_chain(llm, prompt)
     chain = create_retrieval_chain(retriever, qa_chain)
 
     return chain
+
+def get_llm():
+    return ChatOpenAI(model=os.environ.get("FINETUNED_MODEL"))
