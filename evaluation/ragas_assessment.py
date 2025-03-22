@@ -4,7 +4,7 @@ from ragas import EvaluationDataset
 from ragas import evaluate
 from ragas.llms import LangchainLLMWrapper
 from ragas.metrics import LLMContextRecall, LLMContextPrecisionWithReference, Faithfulness, ResponseRelevancy
-from utils.langchain import *
+from handlers.utils.langchain import *
 
 sample_queries = []
 expected_responses = []

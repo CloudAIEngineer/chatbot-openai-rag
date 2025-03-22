@@ -6,6 +6,10 @@ import os
 
 load_dotenv()
 
+def delete_index(index_name="virgin-trains-index"):
+    pc = Pinecone(os.getenv("PINECONE_API_KEY"))
+    pc.delete_index(index_name)
+
 def get_pinecone_index(index_name="virgin-trains-index", dimension=1536, metric="cosine"):    
     pc = Pinecone(os.getenv("PINECONE_API_KEY"))
     existing_indexes = pc.list_indexes()
@@ -27,13 +31,22 @@ def get_pinecone_index(index_name="virgin-trains-index", dimension=1536, metric=
     index = pc.Index(index_name)
     return index
 
-# Load JSON files
+# Load JSON file with documenst
 def load_json_file(file_path):
     with open(file_path, 'r') as f:
         return json.load(f)
 
-# Function to index data into Pinecone
-def index_data(index, file_path):
+# Turn document into embedding
+def generate_embeddings(text):
+    response = openai.embeddings.create(
+        model="text-embedding-ada-002",
+        input=[text]
+    )
+    embeddings = response.data[0].embedding
+    return embeddings
+
+# Index a file into Pinecone
+def index_file(index, file_path):
     data = load_json_file(file_path)
     vectors = []
     for item in data:
@@ -49,31 +62,26 @@ def index_data(index, file_path):
 
     index.upsert(vectors=vectors)
 
-def generate_embeddings(text):
-    response = openai.embeddings.create(
-        model="text-embedding-ada-002",
-        input=[text]
-    )
-    embeddings = response.data[0].embedding
-    return embeddings
-
 def index_knowledge_base_files(knowledge_base_folder, files_to_index, index):
     for file in files_to_index:
         file_path = os.path.join(knowledge_base_folder, file)
         
         if os.path.exists(file_path):
             print(f"Indexing file: {file_path}")
-            index_data(index, file_path)  # Function for indexing data into Pinecone
+            index_file(index, file_path)
         else:
             print(f"File not found: {file_path}")
 
-# Get or create index
-index = get_pinecone_index()
+def index_data(with_delete = False, files_to_index = ["schedule.json"]):
+    if with_delete:
+        delete_index();
 
-# Index knowledge files
-knowledge_base_folder = "knowledge_base"
-files_to_index = ["schedule.json", "tickets.json", "support.json"]
-index_knowledge_base_files(knowledge_base_folder, files_to_index, index)
+    index = get_pinecone_index()
+    knowledge_base_folder = "documents"
+    index_knowledge_base_files(knowledge_base_folder, files_to_index, index)
+
+    print("Indexing complete.")
+    print_index_info(index)
 
 # Debug: print some indexed entries
 def print_index_info(index):
@@ -82,5 +90,4 @@ def print_index_info(index):
     #print("Fetch result:", result)
     print("Result type:", type(result))
 
-#print_index_info(index)
-print("Indexing complete.")
+index_data(True)
