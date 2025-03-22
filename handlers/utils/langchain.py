@@ -29,6 +29,17 @@ def create_prompt():
         ("human", "{input}")
     ])
 
+def create_prompt_experiment():
+    # a prompt for future experiments with fine tuning
+    system_prompt = (
+        "You are a railway service assistant. "
+        "Always base your answers strictly on the provided documents.\n\n"
+        "Context: {context}\n\n"
+        "Do NOT use past knowledge or assumptions—respond ONLY using the given context. "
+        "If the context does not contain relevant information, say you don't have the details instead of guessing. "
+        "Use the conversation history for context, but answer ONLY the latest user question as precisely as possible."
+    )
+
 # Initialize a chain to send requests to the LLM
 def setup_qa_chain(vectorstore):
     prompt = create_prompt()

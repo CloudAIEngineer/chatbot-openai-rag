@@ -5,14 +5,6 @@ frameworkVersion: '3'
 provider:
   name: aws
   region: eu-central-1
-  #ecr:
-    #images:
-      #chatbot-lambda:
-        #path: ./
-        #file: Dockerfile
-        #buildArgs:
-          #provenance: "false"
-          #platform: "linux/amd64"
 
 plugins:
   - serverless-offline
@@ -20,7 +12,7 @@ plugins:
 functions:
   chatbot:
     image:
-      uri: 445567098565.dkr.ecr.eu-central-1.amazonaws.com/serverless-finetuning-openai-dev@sha256:644c338d0bb910462b4f7eecbf7aa9ca17aa814d9a2c7750c4192952886346a0
+      uri: ${env:DOCKER_IMAGE_URI}
       entryPoint:
         - "/lambda-entrypoint.sh"
     events:
