@@ -1,59 +1,45 @@
 import json
 import os
+import sys
 from ragas import EvaluationDataset
 from ragas import evaluate
 from ragas.llms import LangchainLLMWrapper
 from ragas.metrics import LLMContextRecall, LLMContextPrecisionWithReference, Faithfulness, ResponseRelevancy
-from handlers.utils.langchain import *
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils.langchain import *
 
-sample_queries = []
-expected_responses = []
+with open("dataset/answers_rag_v1.json", "r") as f:
+    dataset = json.load(f)
 
-script_dir = os.path.dirname(os.path.abspath(__file__))  
-dataset_path = os.path.join(script_dir, "dataset/evaluation.jsonl")
+#print(dataset)
+#dataset = dataset[:1]
+evaluator_llm = LangchainLLMWrapper(get_llm(custom=False))
 
-with open(dataset_path, 'r') as file:
-    for line in file:
-        data = json.loads(line)
-        sample_queries.append(data['question'])
-        expected_responses.append(data['expected_response'])
+individual_results = []
 
-# Initialize Pinecone and QA Chain
-vectorstore = initialize_pinecone()
-chain = setup_qa_chain(vectorstore)
-
-dataset = []
-
-for query, reference in zip(sample_queries, expected_responses):
-
-    response_data = chain.invoke({"input": query, "placeholder": []})
-    relevant_docs = response_data["context"]
-    response = response_data["answer"]
-
-    dataset.append(
-        {
-            "user_input": query,
-            "retrieved_contexts": [rdoc.page_content for rdoc in relevant_docs],
-            "response": response,
-            "reference": reference,
-        }
+for example in dataset:
+    eval_ds = EvaluationDataset.from_list([example])
+    result = evaluate(
+        dataset=eval_ds,
+        metrics=[
+            Faithfulness(),
+            ResponseRelevancy(),
+            LLMContextPrecisionWithReference(),
+            LLMContextRecall(),
+        ],
+        llm=evaluator_llm,
     )
+    result_dict = {
+        "faithfulness": result['faithfulness'],
+        "answer_relevancy": result['answer_relevancy'],
+        "llm_context_precision_with_reference": result['llm_context_precision_with_reference'],
+        "context_recall": result['context_recall'],
+    }
 
-print(dataset)
+    result_dict["user_input"] = example["user_input"]
+    result_dict["response"] = example["response"]
+    individual_results.append(result_dict)
 
-evaluation_dataset = EvaluationDataset.from_list(dataset)
-
-evaluator_llm = LangchainLLMWrapper(get_llm())
-
-result = evaluate(
-    dataset=evaluation_dataset,
-    metrics=[
-        LLMContextRecall(),
-        LLMContextPrecisionWithReference(),
-        Faithfulness(),
-        ResponseRelevancy(),
-    ],
-    llm=evaluator_llm,
-)
-
-print(result)
+with open("dataset/per_question_ragas_scores.jsonl", "w") as f:
+    for item in individual_results:
+        f.write(json.dumps(item) + "\n")
