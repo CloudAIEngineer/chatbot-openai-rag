@@ -16,11 +16,17 @@ def initialize_pinecone():
 # Create prompt template
 def create_prompt():
     system_prompt = (
-        "You are a railway service assistant. "
-        "Use the following documents about trains:\n\n"
+        "You are a railway service assistant, trained to handle customer inquiries with accuracy and professionalism. "
+        "Always base your answers strictly on the provided documents.\n\n"
+
         "Context: {context}\n\n"
-        "Use the provided conversation history for context, "
-        "but answer ONLY the latest user question as precisely as possible."
+
+        "Guidelines:\n"
+        "- If the user asks about a train schedule, ONLY provide an answer if the context contains complete and reliable information. "
+        "If the details are missing or unclear, politely inform the user that you don’t have the necessary details instead of making assumptions.\n"
+        "- If the user is expressing frustration or anger without asking a specific question, respond politely and empathetically, using a calm and professional tone.\n"
+        "- If the user asks something specific that is NOT covered in the context, inform them that you don't have that information and recommend they call customer service at 568.\n"
+        "- Do NOT use past knowledge, external sources, or assumptions—respond ONLY using the given context."
     )
 
     return ChatPromptTemplate([
@@ -29,23 +35,12 @@ def create_prompt():
         ("human", "{input}")
     ])
 
-def create_prompt_experiment():
-    # a prompt for future experiments with fine tuning
-    system_prompt = (
-        "You are a railway service assistant. "
-        "Always base your answers strictly on the provided documents.\n\n"
-        "Context: {context}\n\n"
-        "Do NOT use past knowledge or assumptions—respond ONLY using the given context. "
-        "If the context does not contain relevant information, say you don't have the details instead of guessing. "
-        "Use the conversation history for context, but answer ONLY the latest user question as precisely as possible."
-    )
-
 # Initialize a chain to send requests to the LLM
 def setup_qa_chain(vectorstore):
     prompt = create_prompt()
     
-    # 'FINETUNED_MODEL' environment variable should contain LLM model code
-    llm = ChatOpenAI(model=os.environ.get("FINETUNED_MODEL"))
+    # Get non-tuned gpt model
+    llm = get_llm(False)
     
     # Ssearch limit of 3 results
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
@@ -55,5 +50,6 @@ def setup_qa_chain(vectorstore):
 
     return chain
 
-def get_llm():
-    return ChatOpenAI(model=os.environ.get("FINETUNED_MODEL"))
+def get_llm(custom=True):
+    model_name = os.environ.get("FINETUNED_MODEL" if custom else "ORIGINAL_MODEL")
+    return ChatOpenAI(model=model_name)

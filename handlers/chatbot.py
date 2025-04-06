@@ -8,8 +8,9 @@ def handler(event, context):
     user_id = body.get("userId")
     query = body.get("query")
 
+    '''If you need you may enable support of chat history
     session_history = get_chat_history(user_id)
-    print("Session history:", session_history)
+    print("Session history:", session_history)'''
 
     # Initialize Pinecone and LangChain
     vectorstore = initialize_pinecone()
@@ -17,14 +18,13 @@ def handler(event, context):
     
     result = chain.invoke({
         "input": query,
-        "placeholder": session_history,
+        "placeholder": [],
     })
-    print(result)
 
-    #result = {"result": 'GPT answer'}
-    #save_user_message(user_id, query)
-    #updated_history = save_assistant_message(user_id, result['result'])
-    #print("Updated after assistant:", updated_history)
+    '''If you need you may enable support of chat history
+    save_user_message(user_id, query)
+    updated_history = save_assistant_message(user_id, result['result'])
+    print("Updated after assistant:", updated_history)'''
 
     return {
         "statusCode": 200,

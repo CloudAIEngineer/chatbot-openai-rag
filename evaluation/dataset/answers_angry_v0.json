@@ -1,0 +1,202 @@
+[
+    {
+        "user_input": "I tried them too they couldnt help",
+        "retrieved_contexts": [
+            "Train 2357 departs from Manchester at 08:30 PM, with stops in Leeds and York, arriving at 10:45 PM. This is a semi-fast service.",
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 7801 departs from Manchester at 07:00 AM, with stops in Leeds and York, arriving at 09:00 AM. This is an express service."
+        ],
+        "response": "Sorry to hear that can you explain your situation further please",
+        "reference": "Really sorry to hear that Mel Had you purchased a pass or were you travelling in 1st Class"
+    },
+    {
+        "user_input": "850 from Euston cancelled said to get the next service but that makes me late for the meeting Awful service at the station",
+        "retrieved_contexts": [
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 7801 departs from Manchester at 07:00 AM, with stops in Leeds and York, arriving at 09:00 AM. This is an express service.",
+            "Train 8125 departs from London at 11:00 AM, making stops in Milton Keynes and Northampton, arriving at 01:00 PM. This is an express service."
+        ],
+        "response": "Sorry to hear that you can make a claim for the cancellation of this service here",
+        "reference": "You can claim for this here Sam"
+    },
+    {
+        "user_input": "No auto delay repay for disrupted trip on 610 Liverpool South Parkway does not appear in your suggested stations on website Pls advise",
+        "retrieved_contexts": [
+            "Train 9123 departs from Manchester at 10:00 AM, with stops in Liverpool and Sheffield, arriving at 12:30 PM. This is a local service.",
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 7801 departs from Manchester at 07:00 AM, with stops in Leeds and York, arriving at 09:00 AM. This is an express service."
+        ],
+        "response": "You can claim via our online form here",
+        "reference": "You will need to select Liverpool Lime Street rather than Liverpool South Parkway Paul"
+    },
+    {
+        "user_input": "Still awaiting a refund for disrupted travel from Liverpool South Parkway on 610 Delay repay submitted on 1510 How long will this take",
+        "retrieved_contexts": [
+            "Train 9123 departs from Manchester at 10:00 AM, with stops in Liverpool and Sheffield, arriving at 12:30 PM. This is a local service.",
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 7801 departs from Manchester at 07:00 AM, with stops in Leeds and York, arriving at 09:00 AM. This is an express service."
+        ],
+        "response": "Delay Repay claims can take up to 28 days to be processed and we aim to respond well within this",
+        "reference": "It can take up to 28 days but should be much sooner than this Paul"
+    },
+    {
+        "user_input": "Does anyone know where the 540 from Glasgow is Apparently have lost it",
+        "retrieved_contexts": [
+            "Train 5680 departs from Glasgow at 10:00 PM, with stops in Stirling and Edinburgh, arriving at 12:30 AM. This is a local service.",
+            "Train 6589 departs from Glasgow at 02:30 PM, making stops in Edinburgh and Stirling, arriving at 04:45 PM. This is a local service.",
+            "Train 7934 departs from Glasgow at 10:30 AM, with stops in Edinburgh and Stirling, arriving at 12:45 PM. This is a local service."
+        ],
+        "response": "Does this sound like the train youre looking for",
+        "reference": "It was briefly delayed by a naughty freight train but its on its way now"
+    },
+    {
+        "user_input": "no sign of the 1138 train to Euston from Glasgow staff all hiding down the end of the platform No news",
+        "retrieved_contexts": [
+            "Train 3569 departs from Glasgow at 08:30 AM, with stops in Stirling and Perth, arriving at 10:30 AM. This is an express service.",
+            "Train 7934 departs from Glasgow at 10:30 AM, with stops in Edinburgh and Stirling, arriving at 12:45 PM. This is a local service.",
+            "Train 7913 departs from Edinburgh at 05:30 PM, with stops in Glasgow and Stirling, arriving at 07:45 PM. This is an express service."
+        ],
+        "response": "This isn in to [PERSON]s team",
+        "reference": "Hi Im afraid a points failure near Glasgow has caused some lines to be blocked but we hope to have services on the move asap"
+    },
+    {
+        "user_input": "youll get me to my destination but Im not sure why Im paying for a seat if Im not getting to sit down",
+        "retrieved_contexts": [
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 8024 departs from London at 06:00 PM, making stops in Milton Keynes and Northampton, arriving at 08:00 PM. This is an intercity service.",
+            "Train 4579 departs from London at 09:30 PM, making stops in Luton and Bedford, arriving at 11:30 PM. This is an intercity service."
+        ],
+        "response": "Sorry to hear youre struggling for a seat [PERSON] We offer a walk up fares voucher as an apology for those who have been unable to get a seat on their booked service. This can be claimed via our online form here",
+        "reference": "Sorry to hear youve not been able to get a seat Oran Did you originally have a reservation for this service"
+    },
+    {
+        "user_input": "Im on the 1233 London KX to Leeds I have a seat now thanks but it was really embarrassing amp confusing",
+        "retrieved_contexts": [
+            "Train 9236 departs from Manchester at 11:30 AM, making stops in Leeds and York, arriving at 01:45 PM. This is a semi-fast service.",
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 7691 departs from Leeds at 03:00 PM, with stops in York and Doncaster, arriving at 05:30 PM. This is an express service."
+        ],
+        "response": "Hi there apologies you had this experience Would you like to make a complaint in regards to this situation",
+        "reference": "Oh no glad youve been able to get one now It sounds like youre on a service today enjoy your journey"
+    },
+    {
+        "user_input": "trying to charge me 54 for a new ticket cause I missed mine by 30 seconds when they sell them online for 25 nah mate",
+        "retrieved_contexts": [
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 2357 departs from Manchester at 08:30 PM, with stops in Leeds and York, arriving at 10:45 PM. This is a semi-fast service.",
+            "Train 3206 departs from Manchester at 05:30 PM, with stops in Sheffield and Leeds, arriving at 07:45 PM. This is an express service."
+        ],
+        "response": "Which ticket type were you looking at",
+        "reference": "Hi Cath what type of ticket did you have Have you been able to sort this now"
+    },
+    {
+        "user_input": "Being made to buy your ticket again when you lost it but still have all the proof Youve got more money than Ill ever have",
+        "retrieved_contexts": [
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 8125 departs from London at 11:00 AM, making stops in Milton Keynes and Northampton, arriving at 01:00 PM. This is an express service.",
+            "Train 7801 departs from Manchester at 07:00 AM, with stops in Leeds and York, arriving at 09:00 AM. This is an express service."
+        ],
+        "response": "Im afraid we cant reissue tickets",
+        "reference": "22 place of this Im afraid apologies"
+    },
+    {
+        "user_input": "Just been told by Customer Services that ignore Warnings and I will have no disruption travelling tomorrow night",
+        "retrieved_contexts": [
+            "Train 5680 departs from Glasgow at 10:00 PM, with stops in Stirling and Edinburgh, arriving at 12:30 AM. This is a local service.",
+            "Train 3468 departs from Birmingham at 09:00 PM, with stops in Wolverhampton and Stafford, arriving at 11:00 PM. This is a local service.",
+            "Train 2357 departs from Manchester at 08:30 PM, with stops in Leeds and York, arriving at 10:45 PM. This is a semi-fast service."
+        ],
+        "response": "That would be for your journey [DATE]",
+        "reference": "Hi Callum services will be amended if any issues occur but we couldnt say for definite until the time comes"
+    },
+    {
+        "user_input": "Oh come on Im on a peak Man to Ldn and theres no unreserved coach 5 1st class bad boys sitting totally empty Ridic",
+        "retrieved_contexts": [
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 3206 departs from Manchester at 05:30 PM, with stops in Sheffield and Leeds, arriving at 07:45 PM. This is an express service.",
+            "Train 2357 departs from Manchester at 08:30 PM, with stops in Leeds and York, arriving at 10:45 PM. This is a semi-fast service."
+        ],
+        "response": "Have you spoken to a member of the onboard team about this",
+        "reference": "Sorry to hear that Lou Hopefully some space will be created as stops are called at"
+    },
+    {
+        "user_input": "so there was no unreserved coach on the maneus train in question because",
+        "retrieved_contexts": [
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 7801 departs from Manchester at 07:00 AM, with stops in Leeds and York, arriving at 09:00 AM. This is an express service.",
+            "Train 4367 departs from Manchester at 01:30 PM, with stops in Sheffield and Leeds, arriving at 03:45 PM. This is an intercity service."
+        ],
+        "response": "Sorry to hear that which train were you on",
+        "reference": "How strange which exact service was it"
+    },
+    {
+        "user_input": "659 2 Cannon Street no notice 4 cancellation to the people on the platform who could be bothered to go to work on time",
+        "retrieved_contexts": [
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 1246 departs from London at 08:00 PM, makes stops in Reading and Oxford, arriving at 10:00 PM. This is an express service.",
+            "Train 7801 departs from Manchester at 07:00 AM, with stops in Leeds and York, arriving at 09:00 AM. This is an express service."
+        ],
+        "response": "Unfortunately were unable to provide information on this service youd need to speak with",
+        "reference": "Hey could you DM us please Rob"
+    },
+    {
+        "user_input": "hi I was on a delayed 1hr train tix booked directly with yourselves but no automatic refund Do I need to submit app",
+        "retrieved_contexts": [
+            "Train 7801 departs from Manchester at 07:00 AM, with stops in Leeds and York, arriving at 09:00 AM. This is an express service.",
+            "Train 8024 departs from London at 06:00 PM, making stops in Milton Keynes and Northampton, arriving at 08:00 PM. This is an intercity service.",
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service."
+        ],
+        "response": "Hi there You can claim a 100 refund via our Delay Repay form here",
+        "reference": "Hi Kate which service were you travelling on please"
+    },
+    {
+        "user_input": "Thankfully she got a refund and rebooked onto the next train Crisis over",
+        "retrieved_contexts": [
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 6791 departs from Birmingham at 10:30 PM, with stops in Coventry and Leicester, arriving at 12:00 AM. This is a semi-fast service.",
+            "Train 8024 departs from London at 06:00 PM, making stops in Milton Keynes and Northampton, arriving at 08:00 PM. This is an intercity service."
+        ],
+        "response": "So glad to hear this",
+        "reference": "Glad to hear that Emily"
+    },
+    {
+        "user_input": "the new app is SO rubbish and user unfriendly Bring back the old app",
+        "retrieved_contexts": [
+            "Train 6589 departs from Glasgow at 02:30 PM, making stops in Edinburgh and Stirling, arriving at 04:45 PM. This is a local service.",
+            "Train 6791 departs from Birmingham at 10:30 PM, with stops in Coventry and Leicester, arriving at 12:00 AM. This is a semi-fast service.",
+            "Train 7934 departs from Glasgow at 10:30 AM, with stops in Edinburgh and Stirling, arriving at 12:45 PM. This is a local service."
+        ],
+        "response": "Were you looking to make a specific journey [DATE]",
+        "reference": "Hi Lucy well pass your comments on Is there anything we can help with"
+    },
+    {
+        "user_input": "Ive managed to do my booking but its a much worse app than previously",
+        "retrieved_contexts": [
+            "Train 2357 departs from Manchester at 08:30 PM, with stops in Leeds and York, arriving at 10:45 PM. This is a semi-fast service.",
+            "Train 1234 departs from London at 08:30 AM, makes stops in Manchester and Birmingham, and arrives at 10:15 AM. This is an express service.",
+            "Train 1084 departs from Birmingham at 04:30 PM, with stops in Coventry and Leicester, arriving at 06:45 PM. This is a semi-fast service."
+        ],
+        "response": "Hi [PERSON] what issues are you having with the app",
+        "reference": "Well feed this back as an update is due very soon Lucy"
+    },
+    {
+        "user_input": "hi guys frustratingly lost both our return tickets back to leeds I have the booking ref and card can I reprint",
+        "retrieved_contexts": [
+            "Train 4671 departs from Leeds at 09:00 AM, making stops in York and Doncaster, arriving at 11:00 AM. This is a local service.",
+            "Train 4680 departs from Leeds at 02:00 PM, with stops in York and Doncaster, arriving at 04:15 PM. This is an intercity service.",
+            "Train 2357 departs from Manchester at 08:30 PM, with stops in Leeds and York, arriving at 10:45 PM. This is a semi-fast service."
+        ],
+        "response": "You can yes via or by contacting our Live Chat Team",
+        "reference": "Hi Paul Im afraid once tickets are printed they cannot be reprinted"
+    },
+    {
+        "user_input": "trying to get hold of your lost property department but your voicemail is useless 2 seconds to record a message",
+        "retrieved_contexts": [
+            "Train 2468 departs from Bristol at 12:00 PM, makes stops in Bath and Swindon, and arrives at 02:15 PM. This is an express service.",
+            "Train 7801 departs from Manchester at 07:00 AM, with stops in Leeds and York, arriving at 09:00 AM. This is an express service.",
+            "Train 2357 departs from Manchester at 08:30 PM, with stops in Leeds and York, arriving at 10:45 PM. This is a semi-fast service."
+        ],
+        "response": "Do you have a reference number for your enquiry",
+        "reference": "Sorry to hear that are you saying it cuts off after 2 minutes"
+    }
+]
