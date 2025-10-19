@@ -1,29 +1,39 @@
-# Serverless Framework
-.serverless/
-*.serverless/
-
-# Node modules (if using npm for any dependencies)
+# === Node / TypeScript ===
 node_modules/
-
-# Python environment and dependencies
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-env/
-venv/
-.venv/
-*.egg-info/
-
-# Python distribution package
 dist/
 build/
+cdk.out/
+*.js
+*.js.map
+*.d.ts
 
-# My folders
-.ipynb_checkpoints/
-finetenv/
-lambda-env/
+# === AWS CDK / Serverless ===
+.serverless/
+*.serverless/
+.cdk.staging/
+cdk.context.json
+
+# === Lambda handlers ===
+handlers/**/*.zip
+handlers/**/*.js
+handlers/**/*.js.map
+
+# === IDE / OS ===
 .DS_Store
-finetuning/kaggle_dataset/
-finetuning/openai_files/
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# === Environment / secrets ===
 .env
+.env.local
+.env.*
+*.pem
+*.key
+*.crt
+
+# === Temporary / Logs ===
+*.log
+logs/
+tmp/
