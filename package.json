@@ -1,7 +1,6 @@
 {
   "name": "chatbot-aws-rag",
   "version": "0.1.0",
-  "type": "module",
   "bin": {
     "chatbot-aws-rag": "bin/chatbot-aws-rag.js"
   },
@@ -18,10 +17,12 @@
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
+    "@types/node": "^20.5.0",
+    "@types/node-fetch": "^2.6.4",
+    "aws-cdk": "^2.1031.2",
     "aws-cdk-lib": "^2.150.0",
     "constructs": "^10.3.0",
     "typescript": "^5.4.0",
-    "@types/node": "^20.5.0",
-    "@types/node-fetch": "^2.6.4"
+    "esbuild": "^0.23.0"
   }
 }

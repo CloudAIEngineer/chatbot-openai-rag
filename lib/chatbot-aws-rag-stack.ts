@@ -1,12 +1,15 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as s3 from "aws-cdk-lib/aws-s3";
-import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import * as autoscaling from "aws-cdk-lib/aws-autoscaling";
+import { join } from "path";
 
 export class ChatbotAwsRagStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -18,11 +21,11 @@ export class ChatbotAwsRagStack extends cdk.Stack {
       autoDeleteObjects: true,
     });
 
-    // === 2. Lambda for embeddings ===
-    const embeddingLambda = new lambda.Function(this, "EmbeddingLambda", {
+    // === 2. Lambda for embeddings (NodejsFunction auto-bundling) ===
+    const embeddingLambda = new NodejsFunction(this, "EmbeddingLambda", {
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: "index.handler",
-      code: lambda.Code.fromAsset("handlers/create-embeddings"),
+      entry: join(__dirname, "../../handlers/create-embeddings.ts"),
+      handler: "handler",
       timeout: cdk.Duration.seconds(60),
       environment: {
         BUCKET_NAME: ingestionBucket.bucketName,
@@ -45,10 +48,10 @@ export class ChatbotAwsRagStack extends cdk.Stack {
     );
 
     // === 3. Lambda to create OpenSearch index ===
-    const createIndexLambda = new lambda.Function(this, "CreateIndexLambda", {
+    const createIndexLambda = new NodejsFunction(this, "CreateIndexLambda", {
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: "create-index.handler",
-      code: lambda.Code.fromAsset("handlers"),
+      entry: join(__dirname, "../../handlers/create-index.ts"),
+      handler: "handler",
       timeout: cdk.Duration.seconds(30),
       environment: {
         OPENSEARCH_ENDPOINT: "https://your-opensearch-domain.eu-central-1.es.amazonaws.com",
@@ -71,18 +74,31 @@ export class ChatbotAwsRagStack extends cdk.Stack {
 
     const cluster = new ecs.Cluster(this, "ChatbotCluster", { vpc });
 
-    cluster.addCapacity("SpotFleet", {
+    const lt = new ec2.LaunchTemplate(this, "SpotLt", {
       instanceType: new ec2.InstanceType("t3.micro"),
-      desiredCapacity: 2,
-      spotPrice: "0.004", // about $3–5/month
+      machineImage: ecs.EcsOptimizedImage.amazonLinux2(),
+    });
+    
+    const asg = new autoscaling.AutoScalingGroup(this, "SpotAsg", {
+      vpc,
+      launchTemplate: lt,
+      minCapacity: 2,
+      maxCapacity: 2,
+      spotPrice: "0.004",
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
     });
+    
+    const cp = new ecs.AsgCapacityProvider(this, "AsgCapacityProvider", {
+      autoScalingGroup: asg,
+    });
+    
+    cluster.addAsgCapacityProvider(cp);
 
-    // === 5. ECS Task Definition for mock chatbot ===
+    // === 5. ECS Task Definition ===
     const taskDef = new ecs.Ec2TaskDefinition(this, "ChatbotTaskDef");
 
     taskDef.addContainer("ChatbotContainer", {
-      image: ecs.ContainerImage.fromAsset("src"), // build from ./src/Dockerfile
+      image: ecs.ContainerImage.fromAsset("src"),
       memoryLimitMiB: 256,
       portMappings: [{ containerPort: 8080 }],
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "Chatbot" }),
