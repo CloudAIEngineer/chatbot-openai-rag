@@ -29,3 +29,30 @@ npm install
 npm run build
 npm run deploy
 ```
+
+## Create OpenSearch index
+
+You must create the vector index manually.
+
+### 1) Get your OpenSearch endpoint
+
+Example: https://<your-domain>.<region>.es.amazonaws.com
+
+### 2) Create index `rag-index` in OpenSearch Console → **Dev Tools**
+
+```http
+PUT /rag-index
+{
+  "settings": {
+    "index": { "knn": true }
+  },
+  "mappings": {
+    "properties": {
+      "embedding": { "type": "knn_vector", "dimension": 1536 },
+      "text":      { "type": "text" },
+      "id":        { "type": "keyword" }
+    }
+  }
+}
+
+```
