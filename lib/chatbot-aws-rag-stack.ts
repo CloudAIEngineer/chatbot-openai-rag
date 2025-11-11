@@ -47,36 +47,36 @@ export class ChatbotAwsRagStack extends cdk.Stack {
       new s3n.LambdaDestination(embeddingLambda)
     );
 
-    // === 3. Lambda to create OpenSearch index ===
-    const createIndexLambda = new NodejsFunction(this, "CreateIndexLambda", {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      entry: join(__dirname, "../../handlers/create-index.ts"),
-      handler: "handler",
-      timeout: cdk.Duration.seconds(30),
-      environment: {
-        OPENSEARCH_ENDPOINT: "https://your-opensearch-domain.eu-central-1.es.amazonaws.com",
-      },
-    });
-
-    createIndexLambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["es:ESHttpPut"],
-        resources: ["*"],
-      })
-    );
-
-    new cdk.CustomResource(this, "CreateVectorIndex", {
-      serviceToken: createIndexLambda.functionArn,
-    });
-
-    // === 4. ECS cluster on EC2 Spot Instances ===
+    // === 3. ECS cluster on EC2 Spot Instances ===
     const vpc = new ec2.Vpc(this, "ChatbotVpc", { maxAzs: 2 });
 
     const cluster = new ecs.Cluster(this, "ChatbotCluster", { vpc });
 
+    const userData = ec2.UserData.forLinux();
+    userData.addCommands(
+      `echo ECS_CLUSTER=${cluster.clusterName} >> /etc/ecs/ecs.config`
+    );
+
+    const instanceRole = new iam.Role(this, "SpotInstanceRole", {
+      assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          "service-role/AmazonEC2ContainerServiceforEC2Role"
+        ),
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          "AmazonSSMManagedInstanceCore"
+        ),
+      ],
+    });
+    
     const lt = new ec2.LaunchTemplate(this, "SpotLt", {
       instanceType: new ec2.InstanceType("t3.micro"),
       machineImage: ecs.EcsOptimizedImage.amazonLinux2(),
+      spotOptions: {
+        maxPrice: 0.004,
+      },
+      userData,
+      role: instanceRole,
     });
     
     const asg = new autoscaling.AutoScalingGroup(this, "SpotAsg", {
@@ -84,7 +84,6 @@ export class ChatbotAwsRagStack extends cdk.Stack {
       launchTemplate: lt,
       minCapacity: 2,
       maxCapacity: 2,
-      spotPrice: "0.004",
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
     });
     
@@ -94,7 +93,7 @@ export class ChatbotAwsRagStack extends cdk.Stack {
     
     cluster.addAsgCapacityProvider(cp);
 
-    // === 5. ECS Task Definition ===
+    // === 4. ECS Task Definition ===
     const taskDef = new ecs.Ec2TaskDefinition(this, "ChatbotTaskDef");
 
     taskDef.addContainer("ChatbotContainer", {
@@ -104,14 +103,14 @@ export class ChatbotAwsRagStack extends cdk.Stack {
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "Chatbot" }),
     });
 
-    // === 6. ECS Service ===
+    // === 5. ECS Service ===
     const service = new ecs.Ec2Service(this, "ChatbotService", {
       cluster,
       taskDefinition: taskDef,
       desiredCount: 2,
     });
 
-    // === 7. Application Load Balancer ===
+    // === 6 Application Load Balancer ===
     const lb = new elbv2.ApplicationLoadBalancer(this, "ChatbotALB", {
       vpc,
       internetFacing: true,
