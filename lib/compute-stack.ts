@@ -18,10 +18,33 @@ export class ComputeStack extends cdk.Stack {
 
     const { vpc } = props;
 
-    // --- ECS Cluster ---
+    // ============================================================
+    // Security Groups
+    // ============================================================
+    // ALB SG (port 80 open to the outside)
+    const albSG = new ec2.SecurityGroup(this, "AlbSG", {
+      vpc,
+      allowAllOutbound: true,
+      description: "ALB Security Group",
+    });
+    albSG.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80));
+
+    // ECS Instances SG (allows only the ALB to access port 8080)
+    const ecsSG = new ec2.SecurityGroup(this, "EcsInstanceSG", {
+      vpc,
+      allowAllOutbound: true,
+      description: "ECS Instances SG",
+    });
+    ecsSG.addIngressRule(albSG, ec2.Port.tcp(8080));
+
+    // ============================================================
+    // ECS Cluster
+    // ============================================================
     this.cluster = new ecs.Cluster(this, "ChatbotCluster", { vpc });
 
-    // --- EC2 Launch Template ---
+    // ============================================================
+    // Launch Template
+    // ============================================================
     const userData = ec2.UserData.forLinux();
     userData.addCommands(
       `echo ECS_CLUSTER=${this.cluster.clusterName} >> /etc/ecs/ecs.config`
@@ -45,13 +68,16 @@ export class ComputeStack extends cdk.Stack {
       spotOptions: { maxPrice: 0.004 },
     });
 
-    // --- ASG ---
+    // ============================================================
+    // Auto Scaling Group (securityGroup should be set here)
+    // ============================================================
     const asg = new autoscaling.AutoScalingGroup(this, "SpotAsg", {
       vpc,
       launchTemplate: lt,
       minCapacity: 2,
       maxCapacity: 2,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      securityGroup: ecsSG,
     });
 
     const cp = new ecs.AsgCapacityProvider(this, "AsgCapacityProvider", {
@@ -60,7 +86,9 @@ export class ComputeStack extends cdk.Stack {
 
     this.cluster.addAsgCapacityProvider(cp);
 
-    // --- Task Definition ---
+    // ============================================================
+    // Task Definition
+    // ============================================================
     const taskDef = new ecs.Ec2TaskDefinition(this, "ChatbotTaskDef");
 
     taskDef.addContainer("ChatbotContainer", {
@@ -68,33 +96,47 @@ export class ComputeStack extends cdk.Stack {
       memoryLimitMiB: 256,
       portMappings: [
         {
-          containerPort: 8080,
-          hostPort: 8080,
-          protocol: ecs.Protocol.TCP
-        }
+          containerPort: 8080, // hostPort удалён
+          protocol: ecs.Protocol.TCP,
+        },
       ],
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "Chatbot" }),
     });
 
-    // --- ECS Service ---
+    // ============================================================
+    // ECS Service
+    // ============================================================
     const service = new ecs.Ec2Service(this, "ChatbotService", {
       cluster: this.cluster,
       taskDefinition: taskDef,
       desiredCount: 2,
+      securityGroups: [ecsSG], // сюда тоже добавляем ECS SG
     });
 
-    // --- ALB + Listener + Target group ---
+    // ============================================================
+    // Load Balancer
+    // ============================================================
     const lb = new elbv2.ApplicationLoadBalancer(this, "ChatbotALB", {
       vpc,
       internetFacing: true,
+      securityGroup: albSG,
     });
 
-    const listener = lb.addListener("Listener", { port: 80, open: true });
+    const listener = lb.addListener("Listener", {
+      port: 80,
+      open: true,
+    });
 
     listener.addTargets("ECS", {
       port: 8080,
       targets: [service],
-      healthCheck: { path: "/", interval: cdk.Duration.seconds(30) },
+      healthCheck: {
+        path: "/",
+        interval: cdk.Duration.seconds(30),
+        timeout: cdk.Duration.seconds(5),
+        healthyThresholdCount: 2,
+        unhealthyThresholdCount: 2,
+      },
     });
 
     new cdk.CfnOutput(this, "ChatbotURL", {
