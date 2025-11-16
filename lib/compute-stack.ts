@@ -72,12 +72,12 @@ export class ComputeStack extends cdk.Stack {
     // Auto Scaling Group (securityGroup should be set here)
     // ============================================================
     const asg = new autoscaling.AutoScalingGroup(this, "SpotAsg", {
-      vpc,
-      launchTemplate: lt,
-      minCapacity: 2,
-      maxCapacity: 2,
-      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-      securityGroup: ecsSG,
+        vpc,
+        launchTemplate: lt,
+        minCapacity: 2,
+        maxCapacity: 2,
+        vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+        securityGroup: ecsSG,
     });
 
     const cp = new ecs.AsgCapacityProvider(this, "AsgCapacityProvider", {
@@ -96,8 +96,9 @@ export class ComputeStack extends cdk.Stack {
       memoryLimitMiB: 256,
       portMappings: [
         {
-          containerPort: 8080, // hostPort удалён
+          containerPort: 8080,
           protocol: ecs.Protocol.TCP,
+          hostPort: 0,
         },
       ],
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "Chatbot" }),
@@ -128,7 +129,6 @@ export class ComputeStack extends cdk.Stack {
     });
 
     listener.addTargets("ECS", {
-      port: 8080,
       targets: [service],
       healthCheck: {
         path: "/",
