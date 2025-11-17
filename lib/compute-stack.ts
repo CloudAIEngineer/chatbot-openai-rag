@@ -29,11 +29,11 @@ export class ComputeStack extends cdk.Stack {
     });
     albSG.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80));
 
-    // ECS Instances SG (allows only the ALB to access port 8080)
-    const ecsSG = new ec2.SecurityGroup(this, "EcsInstanceSG", {
+    // ECS Compute SG (allows only the ALB to access port 8080)
+    const ecsSG = new ec2.SecurityGroup(this, "EcsComputeSG", {
       vpc,
       allowAllOutbound: true,
-      description: "ECS Instances SG",
+      description: "ECS Compute Instances SG",
     });
     ecsSG.addIngressRule(albSG, ec2.Port.tcp(8080));
 
@@ -66,6 +66,7 @@ export class ComputeStack extends cdk.Stack {
       userData,
       role: instanceRole,
       spotOptions: { maxPrice: 0.004 },
+      securityGroup: ecsSG,
     });
 
     // ============================================================
@@ -77,7 +78,7 @@ export class ComputeStack extends cdk.Stack {
         minCapacity: 2,
         maxCapacity: 2,
         vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
-        securityGroup: ecsSG,
+        // securityGroup: ecsSG, // Можно удалить, т.к. SG теперь в LT, но оставим для перестраховки
     });
 
     const cp = new ecs.AsgCapacityProvider(this, "AsgCapacityProvider", {
@@ -98,7 +99,7 @@ export class ComputeStack extends cdk.Stack {
         {
           containerPort: 8080,
           protocol: ecs.Protocol.TCP,
-          hostPort: 0,
+          hostPort: 8080, // <-- КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ 2: Динамический порт
         },
       ],
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "Chatbot" }),
@@ -111,7 +112,6 @@ export class ComputeStack extends cdk.Stack {
       cluster: this.cluster,
       taskDefinition: taskDef,
       desiredCount: 2,
-      securityGroups: [ecsSG], // сюда тоже добавляем ECS SG
     });
 
     // ============================================================
@@ -129,6 +129,7 @@ export class ComputeStack extends cdk.Stack {
     });
 
     listener.addTargets("ECS", {
+      port: 8080,
       targets: [service],
       healthCheck: {
         path: "/",
