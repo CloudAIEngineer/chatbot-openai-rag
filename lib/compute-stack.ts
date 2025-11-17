@@ -78,7 +78,6 @@ export class ComputeStack extends cdk.Stack {
         minCapacity: 2,
         maxCapacity: 2,
         vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
-        // securityGroup: ecsSG, // Можно удалить, т.к. SG теперь в LT, но оставим для перестраховки
     });
 
     const cp = new ecs.AsgCapacityProvider(this, "AsgCapacityProvider", {
@@ -99,7 +98,7 @@ export class ComputeStack extends cdk.Stack {
         {
           containerPort: 8080,
           protocol: ecs.Protocol.TCP,
-          hostPort: 8080, // <-- КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ 2: Динамический порт
+          hostPort: 8080,
         },
       ],
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "Chatbot" }),
