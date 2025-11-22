@@ -22,7 +22,7 @@
     "aws-cdk": "^2.1031.2",
     "aws-cdk-lib": "^2.150.0",
     "constructs": "^10.3.0",
-    "typescript": "^5.4.0",
-    "esbuild": "^0.23.0"
+    "esbuild": "^0.23.0",
+    "typescript": "^5.4.0"
   }
 }
