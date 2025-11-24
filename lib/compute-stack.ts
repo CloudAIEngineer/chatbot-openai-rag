@@ -5,6 +5,7 @@ import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as autoscaling from "aws-cdk-lib/aws-autoscaling";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 
 interface ComputeStackProps extends cdk.StackProps {
   vpc: ec2.IVpc;
@@ -90,6 +91,41 @@ export class ComputeStack extends cdk.Stack {
     // Task Definition
     // ============================================================
     const taskDef = new ecs.Ec2TaskDefinition(this, "ChatbotTaskDef");
+    const pineconeApiKeyParam = ssm.StringParameter.fromStringParameterName(
+      this,
+      "PineconeApiKeyParam",
+      "/chatbot/pinecone/api-key"
+    );
+
+    const pineconeIndexName =
+      this.node.tryGetContext("pineconeIndexName") ??
+      process.env.PINECONE_INDEX_NAME ??
+      "";
+    const pineconeIndexHost =
+      this.node.tryGetContext("pineconeIndexHost") ??
+      process.env.PINECONE_INDEX_HOST ??
+      "";
+    const pineconeNamespace =
+      this.node.tryGetContext("pineconeNamespace") ??
+      process.env.PINECONE_NAMESPACE ??
+      "__default__";
+    const pineconeTopK =
+      this.node.tryGetContext("pineconeTopK") ??
+      process.env.PINECONE_TOP_K ??
+      "5";
+    const hfApiUrl =
+      this.node.tryGetContext("hfApiUrl") ??
+      process.env.HF_API_URL ??
+      "https://router.huggingface.co/v1/chat/completions";
+    const hfModelId =
+      this.node.tryGetContext("hfModelId") ??
+      process.env.HF_MODEL_ID ??
+      "meta-llama/Llama-3.1-8B-Instruct";
+    const hfApiTokenParam = ssm.StringParameter.fromStringParameterName(
+      this,
+      "HfApiTokenParam",
+      "/chatbot/hf/api-token"
+    );
 
     taskDef.addContainer("ChatbotContainer", {
       image: ecs.ContainerImage.fromAsset("src"),
@@ -102,6 +138,18 @@ export class ComputeStack extends cdk.Stack {
         },
       ],
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "Chatbot" }),
+      environment: {
+        PINECONE_INDEX_NAME: pineconeIndexName,
+        PINECONE_INDEX_HOST: pineconeIndexHost,
+        PINECONE_NAMESPACE: pineconeNamespace,
+        PINECONE_TOP_K: pineconeTopK,
+        HF_API_URL: hfApiUrl,
+        HF_MODEL_ID: hfModelId,
+      },
+      secrets: {
+        PINECONE_API_KEY: ecs.Secret.fromSsmParameter(pineconeApiKeyParam),
+        HF_API_TOKEN: ecs.Secret.fromSsmParameter(hfApiTokenParam),
+      },
     });
 
     // ============================================================
