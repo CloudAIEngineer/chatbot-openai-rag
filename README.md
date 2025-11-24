@@ -1,58 +1,113 @@
 # Chatbot AWS RAG
 
-This project implements an AWS-based Retrieval-Augmented Generation (RAG) pipeline using **TypeScript** and **AWS CDK**.
+An end-to-end Retrieval-Augmented Generation pipeline on AWS. Documents are uploaded to S3, embedded and stored in Pinecone (Records API), and an ECS-hosted Express service performs retrieval + generation using Pinecone and a Hugging Face LLM.
 
-## Current Goal
+## Stack Overview
 
-Build a scalable architecture for document ingestion and retrieval using AWS native services (S3, Lambda, OpenSearch, and ECS).
+- **S3 ingestion bucket** – drop JSONL datasets (sample files under `sample-datasets/`).  
+  Each line is `{"id":"…","question":"…","answer":"…","context":"…"}`.
+- **Lambda (`handlers/create-embeddings.ts`)** – triggered on `OBJECT_CREATED`, streams the JSONL file, and calls the Pinecone Records API (`/records/namespaces/.../upsert`). Pinecone handles embedding using the model configured on the index (e.g., `llama-text-embed-v2`).
+- **ECS EC2 service (`src/server.js`)** – Express app that:
+  1. Embeds user questions via Pinecone Inference.
+  2. Queries Pinecone for top matches.
+  3. Sends the context to Hugging Face’s OpenAI-compatible router (`https://router.huggingface.co/v1/chat/completions`) and returns the LLM reply + references.
+- **CDK stacks (`lib/*.ts`)** – VPC, ECS cluster/ALB, and the Lambda stack.
 
-## Current Components
+## Required Secrets (SSM Parameter Store)
 
-- **S3 Bucket (Documents)** — stores uploaded source documents.
-- **Lambda: create-embeddings** — triggered on file upload; generates mock embeddings and stores them in OpenSearch.
-- **OpenSearch** — stores vectorized documents for semantic retrieval.
-- **IAM Roles** — grant Lambdas access to S3 and OpenSearch.
-- **CDK Stack** — defines and deploys all infrastructure.
+```bash
+aws ssm put-parameter \
+  --name "/chatbot/pinecone/api-key" \
+  --type "SecureString" \
+  --value "your-pinecone-api-key"
 
-## Planned Next Steps
+aws ssm put-parameter \
+  --name "/chatbot/hf/api-token" \
+  --type "SecureString" \
+  --value "hf_your_huggingface_token"
+```
 
-1. **Lambda API input** — add an API Gateway endpoint with an authorizer to receive user queries.
-2. **ECS endpoint** — deploy a containerized inference service (LLM or retrieval logic) in ECS Fargate.
-3. **Integration** — connect Lambda input → ECS endpoint → OpenSearch query → LLM response.
-4. **Evaluation** — add RAGAS-based or custom evaluation of retrieval quality.
-5. **Frontend** — simple Streamlit or web UI for testing and demo.
+These are consumed by the ECS task via CDK (`lib/compute-stack.ts`).
 
-## Deployment
+## Environment Variables
+
+| Variable | Default | Required? | Description |
+| --- | --- | --- | --- |
+| `PINECONE_API_KEY` | — | **Yes** | Set via SSM/secret; required by Lambda + ECS. |
+| `PINECONE_INDEX_NAME` | — | **Yes** | Pinecone index created in your account (e.g., `chatbot`). |
+| `PINECONE_INDEX_HOST` | — | **Yes** | Host from Pinecone console (no scheme, e.g., `chatbot-xxxx.svc.region.pinecone.io`). |
+| `PINECONE_NAMESPACE` | `__default__` | Optional | Records namespace; `__default__` maps to Pinecone’s default namespace. |
+| `PINECONE_TOP_K` | `5` | Optional | Retrieval depth for query. |
+| `HF_API_URL` | `https://router.huggingface.co/v1/chat/completions` | Optional | Hugging Face router endpoint. |
+| `HF_MODEL_ID` | `meta-llama/Llama-3.1-8B-Instruct` | Optional | Model identifier passed to the router. |
+| `HF_API_TOKEN` | — | **Yes** | SSM secret for Hugging Face API token. |
+| `PORT` | `8080` | Optional | Express listen port (ECS uses 8080). |
+
+### Where to set them
+
+- **Local testing (`node src/server.js`)** – export the variables in your shell:
+  ```bash
+  export PINECONE_API_KEY=... # can be fetched via aws ssm get-parameter ... --with-decryption
+  export PINECONE_INDEX_NAME=chatbot
+  export PINECONE_INDEX_HOST=chatbot-xxxx.svc.aped-4627-b74a.pinecone.io
+  export HF_API_TOKEN=hf_...
+  # optional overrides: PINECONE_NAMESPACE, HF_MODEL_ID, etc.
+  node src/server.js
+  ```
+
+- **CDK deployment** – provide values via environment variables or `--context` flags. Example:
+  ```bash
+  cdk deploy ComputeStack \
+    --context pineconeIndexName=chatbot \
+    --context pineconeIndexHost=chatbot-xxxx.svc.aped-4627-b74a.pinecone.io \
+    --context pineconeNamespace=__default__ \
+    --context pineconeTopK=5 \
+    --context hfModelId=meta-llama/Llama-3.1-8B-Instruct
+  ```
+
+  Secrets (`/chatbot/pinecone/api-key`, `/chatbot/hf/api-token`) are read from SSM automatically.
+
+## Local Testing
+
+1. Install dependencies for both the CDK project and the Express service:
+   ```bash
+   npm install        # repo root (CDK, Lambda)
+   npm run build
+   cd src && npm install
+   ```
+
+2. Export the env vars (see table above) and start the server:
+   ```bash
+   node server.js
+   ```
+
+3. Test with curl:
+   ```bash
+   curl -X POST http://localhost:8080/chat \
+     -H "Content-Type: application/json" \
+     -d '{"message":"Do you offer group bookings?"}'
+   ```
+
+   Sample response:
+   ```json
+   {
+     "question": "Do you offer group bookings?",
+     "answer": "Yes, group bookings are available for 10+ passengers...",
+     "references": [
+       { "id": "transport-018", "score": 0.56, "question": "Do you offer group bookings?" }
+     ]
+   }
+   ```
+
+## Deploying with CDK
 
 ```bash
 npm install
 npm run build
-npm run deploy
+cdk bootstrap aws://YOUR_ACCOUNT/eu-central-1
+cdk deploy VpcStack
+cdk deploy ComputeStack --context pineconeIndexName=chatbot --context pineconeIndexHost=chatbot-xxxx.svc.aped-4627-b74a.pinecone.io
+cdk deploy AppStack
 ```
 
-## Create OpenSearch index
-
-You must create the vector index manually.
-
-### 1) Get your OpenSearch endpoint
-
-Example: https://<your-domain>.<region>.es.amazonaws.com
-
-### 2) Create index `rag-index` in OpenSearch Console → **Dev Tools**
-
-```http
-PUT /rag-index
-{
-  "settings": {
-    "index": { "knn": true }
-  },
-  "mappings": {
-    "properties": {
-      "embedding": { "type": "knn_vector", "dimension": 1536 },
-      "text":      { "type": "text" },
-      "id":        { "type": "keyword" }
-    }
-  }
-}
-
-```
+Upload a JSONL dataset to the ingestion bucket; the Lambda will push records to Pinecone. Use the ALB URL output from `ComputeStack` to access the chat API.

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
+    "@pinecone-database/pinecone": "^3.0.3",
     "express": "^4.19.0"
   }
 }
